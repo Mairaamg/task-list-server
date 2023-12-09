@@ -10,7 +10,7 @@ function validateTask(task) {
 listEditRouter.use((req, res, next) => {
   
   if (req.method !== 'POST' && req.method !== 'PUT') {
-    return res.status(405).json({ message: 'Método HTTP no permitido' });
+    return res.status(405).json({ message: 'HTTP method not allowed' });
   }
   next();
 });
@@ -18,11 +18,11 @@ listEditRouter.use((req, res, next) => {
 listEditRouter.use((req, res, next) => {
   
   if (req.method === 'POST' && (!req.body || !validateTask(req.body))) {
-    return res.status(400).json({ message: 'Solicitud POST inválida' });
+    return res.status(400).json({ message: 'Invalid POST request' });
   }
   
   if (req.method === 'PUT' && (!req.body || !validateTask(req.body))) {
-    return res.status(400).json({ message: 'Solicitud PUT inválida' });
+    return res.status(400).json({ message: 'Invalid PUT request' });
   }
   next();
 });
