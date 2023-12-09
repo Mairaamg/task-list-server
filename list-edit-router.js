@@ -1,38 +1,65 @@
 const express = require('express');
 const listEditRouter = express.Router();
-const tasksList = require('./app.js')
+const uuid = require('uuid');
 
-listEditRouter.post('/add', function (req, res) {
-  const newTask = {
-    id: tasksList.length + 1, 
-    isCompleted: false,
-    description: req.body.description, 
-  };
-  tasksList.push(newTask);
-  res.status(201).json({ message: `Task "${description}" added.` });
+
+function validateTask(task) {
+  return task && task.description && typeof task.description === 'string';
+}
+
+listEditRouter.use((req, res, next) => {
+  
+  if (req.method !== 'POST' && req.method !== 'PUT') {
+    return res.status(405).json({ message: 'Método HTTP no permitido' });
+  }
+  next();
 });
 
-listEditRouter.delete('/delete:1', (req, res) => {
-  const taskId = parseInt(req.params.taskId);
-  const taskIndex = tasksList.findIndex(task => task.id === taskId);
-  if (taskIndex !== -1) {
-    const deletedTask = tasksList.splice(taskIndex, 1)[0];
-    res.json(deletedTask);
-  } else {
-    res.status(404).json({ error: `No task found with id "${id}".` });
-    }
-  });
-
-  listEditRouter.put('/update:3', (req, res) => {
-    const taskId = parseInt(req.params.taskId);
-    const task = tasksList.find(task => task.id === taskId);
-    if (task) {
-      task.description = req.body.description;
-      task.isCompleted = req.body.isCompleted;
-      res.json(task);
-    } else {
-      res.status(404).json({ error: `No task found with id "${id}".` });
-    }
-  });
+listEditRouter.use((req, res, next) => {
   
-  module.exports = listEditRouter;
+  if (req.method === 'POST' && (!req.body || !validateTask(req.body))) {
+    return res.status(400).json({ message: 'Solicitud POST inválida' });
+  }
+  
+  if (req.method === 'PUT' && (!req.body || !validateTask(req.body))) {
+    return res.status(400).json({ message: 'Solicitud PUT inválida' });
+  }
+  next();
+});
+
+listEditRouter.post('/create', (req, res) => {
+  const { description } = req.body;
+  const newTask = {
+    id: uuid.v4(),
+    isCompleted: false,
+    description,
+  };
+  tasks.push(newTask);
+  res.json(newTask);
+});
+
+listEditRouter.delete('/:taskId', (req, res) => {
+  const taskId = req.params.taskId;
+  const index = tasks.findIndex((task) => task.id === taskId);
+  if (index !== -1) {
+    tasks.splice(index, 1);
+    res.status(204).send();
+  } else {
+    res.status(404).json({ message: 'Task not found' });
+  }
+});
+
+listEditRouter.put('/:taskId', (req, res) => {
+  const taskId = req.params.taskId;
+  const { description, isCompleted } = req.body;
+  const taskToUpdate = tasks.find((task) => task.id === taskId);
+  if (taskToUpdate) {
+    taskToUpdate.description = description || taskToUpdate.description;
+    taskToUpdate.isCompleted = isCompleted || taskToUpdate.isCompleted;
+    res.json(taskToUpdate);
+  } else {
+    res.status(404).json({ message: 'Task not found' });
+  }
+});
+
+module.exports = listEditRouter;

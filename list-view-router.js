@@ -1,15 +1,38 @@
 const express = require('express');
 const listViewRouter = express.Router();
-const tasksList = require('./app.js');
 
-listViewRouter.get('/completed-tasks', (req, res) => {
-  const completedTasks = tasksList.filter(task => task.isCompleted === true);
-  res.json(completedTasks);
-  });
+
+function validateParameters(req, res, next) {
+  const { param } = req.query;
   
-  listViewRouter.get('/incomplete-tasks', (req, res) => {
-    const incompleteTasks = tasksList.filter(task => task.isCompleted === false);
+  if (!param || (param !== 'complete' && param !== 'incomplete')) {
+    return res.status(400).json({ error: 'Invalid parameter' });
+  }
+  
+  
+  next();
+}
+
+listViewRouter.use(validateParameters);
+
+listViewRouter.get('/complete', (req, res) => {
+  try {
+    const completedTasks = tasks.filter((task) => task.isCompleted);
+    res.json(completedTasks);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+listViewRouter.get('/incomplete', (req, res) => {
+  try {
+    const incompleteTasks = tasks.filter((task) => !task.isCompleted);
     res.json(incompleteTasks);
-  });
-  
-  module.exports = listViewRouter;
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+module.exports = listViewRouter;
