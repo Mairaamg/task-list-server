@@ -50,58 +50,51 @@ const tasksList = [
     },
 ];
 
-  app.use(bodyParser.json());
-  
-  const secretKey = process.env.SECRET_KEY || 'default_secret';
-  
-  function authenticateToken(req, res, next) {
-    const token = req.header('Authorization');
-  
-    if (!token) {
-      return res.status(401).json({ message: 'Unauthorized: Token missing' });
-    }
-  
-    jwt.verify(token, secretKey, (err, user) => {
-      if (err) {
-        return res.status(403).json({ message: 'Forbidden: Invalid token' });
-      }
-      req.user = user;
-      next();
-    });
+app.use(bodyParser.json());
+
+const secretKey = process.env.SECRET_KEY || 'default_secret';
+
+function authenticateToken(req, res, next) {
+  const token = req.header('Authorization');
+
+  if (!token) {
+    return res.status(401).json({ message: 'Unauthorized: Token missing' });
   }
 
+  jwt.verify(token, secretKey, (err, user) => {
+    if (err) {
+      return res.status(403).json({ message: 'Forbidden: Invalid token' });
+    }
+    req.user = user;
+    next();
+  });
+}
 
-  function showTasks() {
-    console.log('Tasks list:');
-    tasksList.forEach((task) => {
-        console.log(`${task.id}. [${task.isCompleted ? 'X' : ' '}] ${task.description}`);
-    });
+function showTasks() {
+  console.log('Tasks list:');
+  tasksList.forEach((task) => {
+    console.log(`${task.id}. [${task.isCompleted ? 'X' : ' '}] ${task.description}`);
+  });
 }
 
 app.get('/tasks', (req, res) => {
-    res.json(tasksList);
+  res.json(tasksList);
 });
 
 app.get('/show-tasks', (req, res) => {
-    showTasks(); 
-    res.send('Task list displayed in the console.');
+  showTasks();
+  res.send('Task list displayed in the console.');
 });
 
-const loginRouter = require('./login-router');
-const listEditRouter = require('./list-edit-router');
-const listViewRouter = require('./list-view-router');
 
-
-app.use(loginRouter);
-app.use(listViewRouter);
-app.use(listEditRouter);
-
+const taskRouter = require('./task-router');
+app.use('/api/tasks', authenticateToken, taskRouter);
 
 app.listen(PORT, () => {
-    console.log(`Server listening on http://localhost:${PORT}`);
-  });
+  console.log(`Server listening on http://localhost:${PORT}`);
+});
 
-  module.exports = {
-    tasksList,
-    authenticateToken,
-  };
+module.exports = {
+  tasksList,
+  authenticateToken,
+};
