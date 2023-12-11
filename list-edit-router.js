@@ -2,6 +2,8 @@ const express = require('express');
 const listEditRouter = express.Router();
 const uuid = require('uuid');
 
+const { tasksList } = require('./app');
+
 
 function validateTask(task) {
   return task && task.description && typeof task.description === 'string';
@@ -27,18 +29,18 @@ listEditRouter.use((req, res, next) => {
   next();
 });
 
-listEditRouter.post('/create', (req, res) => {
+listEditRouter.post('/list-edit-create', (req, res) => {
   const { description } = req.body;
   const newTask = {
     id: uuid.v4(),
     isCompleted: false,
     description,
   };
-  tasks.push(newTask);
+  tasksList.push(newTask);
   res.json(newTask);
 });
 
-listEditRouter.delete('/:taskId', (req, res) => {
+listEditRouter.delete('/list-edit:taskId', (req, res) => {
   const taskId = req.params.taskId;
   const index = tasks.findIndex((task) => task.id === taskId);
   if (index !== -1) {
@@ -49,7 +51,7 @@ listEditRouter.delete('/:taskId', (req, res) => {
   }
 });
 
-listEditRouter.put('/:taskId', (req, res) => {
+listEditRouter.put('/list-edit:taskId', (req, res) => {
   const taskId = req.params.taskId;
   const { description, isCompleted } = req.body;
   const taskToUpdate = tasks.find((task) => task.id === taskId);

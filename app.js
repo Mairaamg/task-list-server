@@ -1,9 +1,11 @@
 const express = require('express');
+const jwt = require('jsonwebtoken');
+const bodyParser = require('body-parser');
+const dotenv = require('dotenv');
+dotenv.config();
+
 const app = express();
 const PORT = 3000;
-const listEditRouter = require('./list-edit-router.js');
-const listViewRouter = require('./list-view-router.js');
-
 
 const tasksList = [
     {
@@ -48,7 +50,28 @@ const tasksList = [
     },
 ];
 
-function showTasks() {
+  app.use(bodyParser.json());
+  
+  const secretKey = process.env.SECRET_KEY || 'default_secret';
+  
+  function authenticateToken(req, res, next) {
+    const token = req.header('Authorization');
+  
+    if (!token) {
+      return res.status(401).json({ message: 'Unauthorized: Token missing' });
+    }
+  
+    jwt.verify(token, secretKey, (err, user) => {
+      if (err) {
+        return res.status(403).json({ message: 'Forbidden: Invalid token' });
+      }
+      req.user = user;
+      next();
+    });
+  }
+
+
+  function showTasks() {
     console.log('Tasks list:');
     tasksList.forEach((task) => {
         console.log(`${task.id}. [${task.isCompleted ? 'X' : ' '}] ${task.description}`);
@@ -64,14 +87,21 @@ app.get('/show-tasks', (req, res) => {
     res.send('Task list displayed in the console.');
 });
 
-app.use('/list-view', listViewRouter);
-app.use('/list-edit', listEditRouter);
+const loginRouter = require('./login-router');
+const listEditRouter = require('./list-edit-router');
+const listViewRouter = require('./list-view-router');
+
+
+app.use(loginRouter);
+app.use(listViewRouter);
+app.use(listEditRouter);
+
 
 app.listen(PORT, () => {
     console.log(`Server listening on http://localhost:${PORT}`);
   });
 
-//Esto es todo lo que he podido hacer hasta el momento, sin embargo las rutas de list-edit-router y list-view-router
-//no me funcionan como deberian, en postman me sale error y en el navegador, el mensaje de CANNOT GET.
-//Te pido que por favor me expliques en los comentarios del entregable, que estoy haciendo mal y como podría 
-//mejorar mi código. Gracias!!!
+  module.exports = {
+    tasksList,
+    authenticateToken,
+  };

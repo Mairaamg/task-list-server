@@ -1,6 +1,9 @@
 const express = require('express');
 const listViewRouter = express.Router();
 
+const { tasksList } = require('./app');
+
+
 
 function validateParameters(req, res, next) {
   const { param } = req.query;
@@ -15,7 +18,7 @@ function validateParameters(req, res, next) {
 
 listViewRouter.use(validateParameters);
 
-listViewRouter.get('/complete', (req, res) => {
+listViewRouter.get('/list-view-complete', (req, res) => {
   try {
     const completedTasks = tasks.filter((task) => task.isCompleted);
     res.json(completedTasks);
@@ -25,7 +28,7 @@ listViewRouter.get('/complete', (req, res) => {
   }
 });
 
-listViewRouter.get('/incomplete', (req, res) => {
+listViewRouter.get('/list-view-incomplete', (req, res) => {
   try {
     const incompleteTasks = tasks.filter((task) => !task.isCompleted);
     res.json(incompleteTasks);
